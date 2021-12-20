@@ -24,304 +24,281 @@
 
 #include <ctype.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #ifndef DYNSTRDEF
-#define DYNSTRDEF
+#ifdef DYNSTR_STATIC
+#define DYNSTRDEF static
+#else
+#define DYNSTRDEF extern
+#endif // DRAPE_STATIC
 #endif // DYNSTRDEF
 
 typedef struct String String;
 
-DYNSTRDEF String* mkString(const char* str);
-DYNSTRDEF String* mkNString(const char* str, size_t strLen);
+DYNSTRDEF String *mkString(const char *str);
+DYNSTRDEF String *mkNString(const char *str, size_t strLen);
 
-DYNSTRDEF void freeString(String* pString);
+DYNSTRDEF void freeString(String *pString);
 
-DYNSTRDEF void appendChar(String* pString, char chr);
-DYNSTRDEF void appendStr(String* pString, const char* str);
-DYNSTRDEF void appendNStr(String* pString, const char* str, size_t strLen);
-DYNSTRDEF void appendCharBack(String* pString, char chr);
-DYNSTRDEF void appendStrBack(String* pString, const char* str);
-DYNSTRDEF void appendNStrBack(String* pString, const char* str, size_t strLen);
+DYNSTRDEF void appendChar(String *pString, char chr);
+DYNSTRDEF void appendStr(String *pString, const char *str);
+DYNSTRDEF void appendNStr(String *pString, const char *str, size_t strLen);
+DYNSTRDEF void appendCharBack(String *pString, char chr);
+DYNSTRDEF void appendStrBack(String *pString, const char *str);
+DYNSTRDEF void appendNStrBack(String *pString, const char *str, size_t strLen);
 
-DYNSTRDEF void concatString(String* dst, const String* src);
-DYNSTRDEF void concatFreeString(String* dst, String* src);
+DYNSTRDEF void concatString(String *dst, const String *src);
+DYNSTRDEF void concatFreeString(String *dst, String *src);
 
-DYNSTRDEF int cmpString(const String* pString1, const String* pString2);
-DYNSTRDEF int cmpStringStr(const String* pString, const char* str);
-DYNSTRDEF int cmpStrString(const char* str, const String* pString);
+DYNSTRDEF int cmpString(const String *pString1, const String *pString2);
+DYNSTRDEF int cmpStringStr(const String *pString, const char *str);
+DYNSTRDEF int cmpStrString(const char *str, const String *pString);
 
-DYNSTRDEF ssize_t findChar(const String* pString, char chr);
-DYNSTRDEF ssize_t findCharReverse(const String* pString, char chr);
+DYNSTRDEF ssize_t findChar(const String *pString, char chr);
+DYNSTRDEF ssize_t findCharReverse(const String *pString, char chr);
 
-DYNSTRDEF void clearStringAfter(String* pString, ssize_t pos);
-DYNSTRDEF void clearStringBefore(String* pString, ssize_t pos);
-DYNSTRDEF void clearEntireString(String* pString);
+DYNSTRDEF void clearStringAfter(String *pString, ssize_t pos);
+DYNSTRDEF void clearStringBefore(String *pString, ssize_t pos);
+DYNSTRDEF void clearEntireString(String *pString);
 
-DYNSTRDEF const char* getStr(const String* const pString);
-DYNSTRDEF size_t getLen(const String* const pString);
-DYNSTRDEF size_t getCapacity(const String* const pString);
+DYNSTRDEF const char *getStr(const String *const pString);
+DYNSTRDEF size_t getLen(const String *const pString);
+DYNSTRDEF size_t getCapacity(const String *const pString);
 
 #define DYNS_FMT "%s"
 #define DYNS_ARG(str) (getStr(str))
 
+#ifdef __cplusplus
+}
+#endif
+
+/************************/
+/* START IMPLEMENTATION */
+/************************/
 #ifdef DYN_STRING_IMPL
 
 #include <stdlib.h>
 #include <string.h>
 
-struct String
-{
-    size_t capacity;
-    size_t len;
-    char* inner;
+struct String {
+  size_t capacity;
+  size_t len;
+  char *inner;
 };
 
-struct String* mkString(const char* str)
-{
-    struct String* string = malloc(sizeof(struct String));
+struct String *mkString(const char *str) {
+  struct String *string = malloc(sizeof(struct String));
 
-    if (!str)
-    {
-        string->capacity = 0;
-        string->len = 0;
-        string->inner = NULL;
-    }
-    else
-    {
-        size_t strLen = strlen(str);
-
-        string->capacity = (strLen + 1) << 1;
-        string->len = strLen;
-        string->inner = malloc(string->capacity);
-        memcpy(string->inner, str, strLen);
-        string->inner[strLen] = '\0';
-    }
-
-    return string;
-}
-
-struct String* mkNString(const char* str, size_t strLen)
-{
-    struct String* string = malloc(sizeof(struct String));
-
-    if (!str || strLen == 0)
-    {
-        string->capacity = 0;
-        string->len = 0;
-        string->inner = NULL;
-    }
-    else
-    {
-        string->capacity = (strLen + 1) << 1;
-        string->len = strLen;
-        string->inner = malloc(string->capacity);
-        memcpy(string->inner, str, strLen);
-        string->inner[strLen] = '\0';
-    }
-
-    return string;
-}
-
-void freeString(struct String* pString)
-{
-    if (!pString)
-        return;
-
-    free(pString->inner);
-    free(pString);
-}
-
-void appendChar(struct String* pString, char chr)
-{
-    if (pString->len + 1 >= pString->capacity)
-    {
-        pString->capacity = (pString->capacity + 1) << 1;
-        pString->inner = realloc(pString->inner, pString->capacity);
-    }
-    pString->inner[pString->len++] = chr;
-    pString->inner[pString->len] = '\0';
-}
-
-void appendStr(struct String* pString, const char* str)
-{
+  if (!str) {
+    string->capacity = 0;
+    string->len = 0;
+    string->inner = NULL;
+  } else {
     size_t strLen = strlen(str);
-    if (pString->len + strLen + 1 >= pString->capacity)
-    {
-        pString->capacity = (pString->capacity + strLen + 1) << 1;
-        pString->inner = realloc(pString->inner, pString->capacity);
-    }
-    memcpy(pString->inner + pString->len, str, strLen);
-    pString->inner[pString->len + strLen] = '\0';
-    pString->len += strLen;
+
+    string->capacity = (strLen + 1) << 1;
+    string->len = strLen;
+    string->inner = malloc(string->capacity);
+    memcpy(string->inner, str, strLen);
+    string->inner[strLen] = '\0';
+  }
+
+  return string;
 }
 
-void appendNStr(struct String* pString, const char* str, size_t strLen)
-{
-    if (pString->len + strLen + 1 >= pString->capacity)
-    {
-        pString->capacity = (pString->capacity + strLen + 1) << 1;
-        pString->inner = realloc(pString->inner, pString->capacity);
-    }
-    memcpy(pString->inner + pString->len, str, strLen);
-    pString->inner[pString->len + strLen] = '\0';
-    pString->len += strLen;
+struct String *mkNString(const char *str, size_t strLen) {
+  struct String *string = malloc(sizeof(struct String));
+
+  if (!str || strLen == 0) {
+    string->capacity = 0;
+    string->len = 0;
+    string->inner = NULL;
+  } else {
+    string->capacity = (strLen + 1) << 1;
+    string->len = strLen;
+    string->inner = malloc(string->capacity);
+    memcpy(string->inner, str, strLen);
+    string->inner[strLen] = '\0';
+  }
+
+  return string;
 }
 
-void appendCharBack(String* pString, char chr)
-{
-    if (pString->len + 1 >= pString->capacity)
-    {
-        pString->capacity = (pString->capacity + 1) << 1;
-        pString->inner = realloc(pString->inner, pString->capacity);
-    }
+void freeString(struct String *pString) {
+  if (!pString)
+    return;
 
-	memmove(pString->inner + 1, pString->inner, ++pString->len);
-    pString->inner[0] = chr;
+  free(pString->inner);
+  free(pString);
 }
 
-void appendStrBack(String* pString, const char* str)
-{
-    size_t strLen = strlen(str);
-    if (pString->len + strLen + 1 >= pString->capacity)
-    {
-        pString->capacity = (pString->capacity + strLen + 1) << 1;
-        pString->inner = realloc(pString->inner, pString->capacity);
-    }
-	memmove(pString->inner + strLen, pString->inner, pString->len);
-    memcpy(pString->inner, str, strLen);
-    pString->inner[pString->len + strLen] = '\0';
-    pString->len += strLen;
+void appendChar(struct String *pString, char chr) {
+  if (pString->len + 1 >= pString->capacity) {
+    pString->capacity = (pString->capacity + 1) << 1;
+    pString->inner = realloc(pString->inner, pString->capacity);
+  }
+  pString->inner[pString->len++] = chr;
+  pString->inner[pString->len] = '\0';
 }
 
-void appendNStrBack(String* pString, const char* str, size_t strLen)
-{
-    if (pString->len + strLen + 1 >= pString->capacity)
-    {
-        pString->capacity = (pString->capacity + strLen + 1) << 1;
-        pString->inner = realloc(pString->inner, pString->capacity);
-    }
-	memmove(pString->inner + strLen, pString->inner, pString->len);
-    memcpy(pString->inner, str, strLen);
-    pString->inner[pString->len + strLen] = '\0';
-    pString->len += strLen;
+void appendStr(struct String *pString, const char *str) {
+  size_t strLen = strlen(str);
+  if (pString->len + strLen + 1 >= pString->capacity) {
+    pString->capacity = (pString->capacity + strLen + 1) << 1;
+    pString->inner = realloc(pString->inner, pString->capacity);
+  }
+  memcpy(pString->inner + pString->len, str, strLen);
+  pString->inner[pString->len + strLen] = '\0';
+  pString->len += strLen;
 }
 
-void concatString(struct String* dst, const struct String* src)
-{
-    if (!dst || !src)
-        return;
-
-    if (dst->len + src->len + 1 >= dst->capacity)
-    {
-        dst->capacity = (dst->capacity + src->len + 1) << 1;
-        dst->inner = realloc(dst->inner, dst->capacity);
-    }
-    memcpy(dst->inner + dst->len, src->inner, src->len);
-    dst->inner[dst->len + src->len] = '\0';
-    dst->len += src->len;
+void appendNStr(struct String *pString, const char *str, size_t strLen) {
+  if (pString->len + strLen + 1 >= pString->capacity) {
+    pString->capacity = (pString->capacity + strLen + 1) << 1;
+    pString->inner = realloc(pString->inner, pString->capacity);
+  }
+  memcpy(pString->inner + pString->len, str, strLen);
+  pString->inner[pString->len + strLen] = '\0';
+  pString->len += strLen;
 }
 
-void concatFreeString(struct String* dst, struct String* src)
-{
-    concatString(dst, src);
-    freeString(src);
+void appendCharBack(String *pString, char chr) {
+  if (pString->len + 1 >= pString->capacity) {
+    pString->capacity = (pString->capacity + 1) << 1;
+    pString->inner = realloc(pString->inner, pString->capacity);
+  }
+
+  memmove(pString->inner + 1, pString->inner, ++pString->len);
+  pString->inner[0] = chr;
 }
 
-int cmpString(const struct String* pString1, const struct String* pString2)
-{
-    if (!pString1)
-        return -(int)pString2->len;
-    if (!pString2)
-        return (int)pString1->len;
-    return strcmp(pString1->inner, pString2->inner);
+void appendStrBack(String *pString, const char *str) {
+  size_t strLen = strlen(str);
+  if (pString->len + strLen + 1 >= pString->capacity) {
+    pString->capacity = (pString->capacity + strLen + 1) << 1;
+    pString->inner = realloc(pString->inner, pString->capacity);
+  }
+  memmove(pString->inner + strLen, pString->inner, pString->len);
+  memcpy(pString->inner, str, strLen);
+  pString->inner[pString->len + strLen] = '\0';
+  pString->len += strLen;
 }
 
-int cmpStringStr(const String* pString, const char* str)
-{
-    if (!pString)
-        return -(int)strlen(str);
-    if (!str)
-        return (int)pString->len;
-    return strcmp(pString->inner, str);
+void appendNStrBack(String *pString, const char *str, size_t strLen) {
+  if (pString->len + strLen + 1 >= pString->capacity) {
+    pString->capacity = (pString->capacity + strLen + 1) << 1;
+    pString->inner = realloc(pString->inner, pString->capacity);
+  }
+  memmove(pString->inner + strLen, pString->inner, pString->len);
+  memcpy(pString->inner, str, strLen);
+  pString->inner[pString->len + strLen] = '\0';
+  pString->len += strLen;
 }
 
-int cmpStrString(const char* str, const String* pString)
-{
-    if (!str)
-        return -(int)pString->len;
-    if (!pString)
-        return (int)strlen(str);
-    return strcmp(str, pString->inner);
+void concatString(struct String *dst, const struct String *src) {
+  if (!dst || !src)
+    return;
+
+  if (dst->len + src->len + 1 >= dst->capacity) {
+    dst->capacity = (dst->capacity + src->len + 1) << 1;
+    dst->inner = realloc(dst->inner, dst->capacity);
+  }
+  memcpy(dst->inner + dst->len, src->inner, src->len);
+  dst->inner[dst->len + src->len] = '\0';
+  dst->len += src->len;
 }
 
-ssize_t findChar(const String* pString, char chr)
-{
-    if (!pString)
-        return -1;
-
-    char* ptr = strchr(pString->inner, chr);
-    if (!ptr)
-        return -1;
-
-    return ptr - pString->inner;
+void concatFreeString(struct String *dst, struct String *src) {
+  concatString(dst, src);
+  freeString(src);
 }
 
-ssize_t findCharReverse(const String* pString, char chr)
-{
-    if (!pString)
-        return -1;
-
-    char* ptr = strrchr(pString->inner, chr);
-    if (!ptr)
-        return -1;
-
-    return ptr - pString->inner;
+int cmpString(const struct String *pString1, const struct String *pString2) {
+  if (!pString1)
+    return -(int)pString2->len;
+  if (!pString2)
+    return (int)pString1->len;
+  return strcmp(pString1->inner, pString2->inner);
 }
 
-void clearStringAfter(struct String* pString, ssize_t pos)
-{
-    if (!pString)
-        return;
-
-    size_t u_pos = pos < 0 ? pString->len + 1 + (size_t)pos : (size_t)pos;
-    memset(pString->inner + u_pos, 0, sizeof(char) * (pString->len - u_pos));
-    pString->len = u_pos;
+int cmpStringStr(const String *pString, const char *str) {
+  if (!pString)
+    return -(int)strlen(str);
+  if (!str)
+    return (int)pString->len;
+  return strcmp(pString->inner, str);
 }
 
-void clearStringBefore(struct String* pString, ssize_t pos)
-{
-    if (!pString)
-        return;
-
-    size_t u_pos = pos < 0 ? pString->len + 1 + (size_t)pos : (size_t)pos;
-    memmove(pString->inner, pString->inner + u_pos,
-            sizeof(char) * (pString->len - u_pos));
-    memset(pString->inner + pString->len - u_pos, 0, sizeof(char) * u_pos);
-    pString->len -= u_pos;
+int cmpStrString(const char *str, const String *pString) {
+  if (!str)
+    return -(int)pString->len;
+  if (!pString)
+    return (int)strlen(str);
+  return strcmp(str, pString->inner);
 }
 
-void clearEntireString(struct String* pString)
-{
-    clearStringAfter(pString, 0);
+ssize_t findChar(const String *pString, char chr) {
+  if (!pString)
+    return -1;
+
+  char *ptr = strchr(pString->inner, chr);
+  if (!ptr)
+    return -1;
+
+  return ptr - pString->inner;
 }
 
-const char* getStr(const struct String* const pString)
-{
-    if (!pString)
-        return NULL;
-    return pString->inner;
-}
-size_t getLen(const struct String* const pString)
-{
-    if (!pString)
-        return 0;
-    return pString->len;
+ssize_t findCharReverse(const String *pString, char chr) {
+  if (!pString)
+    return -1;
+
+  char *ptr = strrchr(pString->inner, chr);
+  if (!ptr)
+    return -1;
+
+  return ptr - pString->inner;
 }
 
-size_t getCapacity(const struct String* const pString)
-{
-    if (!pString)
-        return 0;
-    return pString->capacity;
+void clearStringAfter(struct String *pString, ssize_t pos) {
+  if (!pString)
+    return;
+
+  size_t u_pos = pos < 0 ? pString->len + 1 + (size_t)pos : (size_t)pos;
+  memset(pString->inner + u_pos, 0, sizeof(char) * (pString->len - u_pos));
+  pString->len = u_pos;
+}
+
+void clearStringBefore(struct String *pString, ssize_t pos) {
+  if (!pString)
+    return;
+
+  size_t u_pos = pos < 0 ? pString->len + 1 + (size_t)pos : (size_t)pos;
+  memmove(pString->inner, pString->inner + u_pos,
+          sizeof(char) * (pString->len - u_pos));
+  memset(pString->inner + pString->len - u_pos, 0, sizeof(char) * u_pos);
+  pString->len -= u_pos;
+}
+
+void clearEntireString(struct String *pString) { clearStringAfter(pString, 0); }
+
+const char *getStr(const struct String *const pString) {
+  if (!pString)
+    return NULL;
+  return pString->inner;
+}
+size_t getLen(const struct String *const pString) {
+  if (!pString)
+    return 0;
+  return pString->len;
+}
+
+size_t getCapacity(const struct String *const pString) {
+  if (!pString)
+    return 0;
+  return pString->capacity;
 }
 
 #endif // DYN_STRING_IMPL
