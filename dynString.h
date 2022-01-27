@@ -17,6 +17,15 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
+ *
+ * Dynamically sized string library for pure C
+ * version : 0.1.0
+ *
+ *
+ * Usage
+ * This library uses the stb header only library style. So, defining
+ * DYN_STRING_IMPL macro on the one of the c source code to generate the
+ * whole implementations of this library.
  */
 
 #ifndef DYN_STRING_H_
@@ -26,6 +35,8 @@
 
 #if defined(__APPLE__) || defined(__linux__)
 #include <sys/types.h>
+#elif defined(_WIN32)
+typedef long long ssize_t;
 #endif
 
 #ifndef DYNSTRDEF
@@ -47,7 +58,9 @@ DYNSTRDEF void appendStrBack(String* pString, const char* str);
 DYNSTRDEF void appendNStrBack(String* pString, const char* str, size_t strLen);
 
 DYNSTRDEF void concatString(String* dst, const String* src);
+DYNSTRDEF void concatStringBack(String* dst, const String* src);
 DYNSTRDEF void concatFreeString(String* dst, String* src);
+DYNSTRDEF void concatFreeStringBack(String* dst, String* src);
 
 DYNSTRDEF int cmpString(const String* pString1, const String* pString2);
 DYNSTRDEF int cmpStringStr(const String* pString, const char* str);
@@ -150,6 +163,11 @@ void appendChar(struct String* pString, char chr)
 
 void appendStr(struct String* pString, const char* str)
 {
+    if (!str)
+    {
+        return;
+    }
+
     size_t strLen = strlen(str);
     if (pString->len + strLen + 1 >= pString->capacity)
     {
@@ -163,6 +181,11 @@ void appendStr(struct String* pString, const char* str)
 
 void appendNStr(struct String* pString, const char* str, size_t strLen)
 {
+    if (!str || strLen == 0)
+    {
+        return;
+    }
+
     if (pString->len + strLen + 1 >= pString->capacity)
     {
         pString->capacity = (pString->capacity + strLen + 1) << 1;
@@ -230,6 +253,28 @@ void concatString(struct String* dst, const struct String* src)
 void concatFreeString(struct String* dst, struct String* src)
 {
     concatString(dst, src);
+    freeString(src);
+}
+
+void concatStringBack(struct String* dst, const struct String* src)
+{
+    if (!dst || !src)
+        return;
+
+    if (dst->len + src->len + 1 >= dst->capacity)
+    {
+        dst->capacity = (dst->capacity + src->len + 1) << 1;
+        dst->inner = realloc(dst->inner, dst->capacity);
+    }
+    memmove(dst->inner + src->len, dst->inner, dst->len);
+    memcpy(dst->inner, src->inner, src->len);
+    dst->inner[dst->len + src->len] = '\0';
+    dst->len += src->len;
+}
+
+void concatFreeStringBack(struct String* dst, struct String* src)
+{
+    concatStringBack(dst, src);
     freeString(src);
 }
 
