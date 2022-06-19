@@ -19,9 +19,9 @@
  * THE SOFTWARE.
  *
  * Dynamically sized string library for pure C
- * version : 0.1.1
+ * version : 1.0.1
  *
- * v0.1.1 : add mkStringFmt, appendFmtStr and appendFmtStrBack
+ * v1.0.1 : add mkStringFmt, appendFmtStr and appendFmtStrBack
  *
  * Usage
  * This library uses the stb header only library style. So, defining
