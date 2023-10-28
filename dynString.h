@@ -35,6 +35,7 @@
 #define DYN_STRING_H_
 
 #include <ctype.h>
+#include <stdbool.h>
 
 #if defined(__APPLE__) || defined(__linux__)
 #include <sys/types.h>
@@ -61,7 +62,7 @@ DYNSTRDEF void dyns_append_fmt_str(DynString* pString, const char* format, ...);
 DYNSTRDEF void dyns_append_char_back(DynString* pString, char chr);
 DYNSTRDEF void dyns_append_cstr_back(DynString* pString, const char* str);
 DYNSTRDEF void dyns_append_n_cstr_back(DynString* pString, const char* str, size_t strLen);
-DYNSTRDEF void dyns_append_fmt_cstr_back(DynString* pString, const char* format, ...);
+DYNSTRDEF void dyns_append_fmt_str_back(DynString* pString, const char* format, ...);
 
 DYNSTRDEF void dyns_concat_string(DynString* dst, const DynString* src);
 DYNSTRDEF void dyns_concat_string_back(DynString* dst, const DynString* src);
@@ -76,6 +77,8 @@ DYNSTRDEF ssize_t dyns_find_char(const DynString* pString, char chr);
 DYNSTRDEF ssize_t dyns_find_char_nth(const DynString* pString, char chr, size_t nth);
 DYNSTRDEF ssize_t dyns_find_char_reverse(const DynString* pString, char chr);
 DYNSTRDEF ssize_t dyns_find_char_reverse_nth(const DynString* pString, char chr, size_t nth);
+
+DYNSTRDEF bool dyns_pop_char(DynString* pString, char* output);
 
 DYNSTRDEF void dyns_clear_string_after_pos(DynString* pString, size_t pos);
 DYNSTRDEF void dyns_clear_string_before_pos(DynString* pString, size_t pos);
@@ -269,7 +272,7 @@ void dyns_append_n_cstr_back(DynString* pString, const char* str, size_t strLen)
     pString->len += strLen;
 }
 
-void dyns_append_fmt_cstr_back(DynString* pString, const char* format, ...) {
+void dyns_append_fmt_str_back(DynString* pString, const char* format, ...) {
     size_t len;
 
     va_list args;
@@ -392,6 +395,14 @@ ssize_t dyns_find_char_reverse_nth(const DynString* pString, char chr, size_t nt
     }
 
     return ptr - pString->inner;
+}
+
+bool dyns_pop_char(DynString* pString, char* output) {
+    if (!output || pString->len == 0)
+        return false;
+
+    *output = pString->inner[--pString->len];
+    return true;
 }
 
 void dyns_clear_string_after_pos(DynString* pString, size_t pos) {
