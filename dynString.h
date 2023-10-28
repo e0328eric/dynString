@@ -158,7 +158,7 @@ DynString* dyns_make_string_fmt(const char* format, ...) {
 
     DynString* string = (DynString*)malloc(sizeof(DynString));
     string->capacity = (len + 1) << 1;
-    string->len = len + 1;
+    string->len = len;
     string->inner = (char*)malloc(string->capacity);
 
     va_start(args, format);
@@ -218,15 +218,13 @@ void dyns_append_fmt_str(DynString* pString, const char* format, ...) {
     size_t len;
 
     va_list args;
-    {
-        va_start(args, format);
-        int tmp = vsnprintf(NULL, 0, format, args);
-        va_end(args);
+    va_start(args, format);
+    int tmp = vsnprintf(NULL, 0, format, args);
+    va_end(args);
 
-        if (tmp < 0)
-            return;
-        len = (size_t)tmp;
-    }
+    if (tmp < 0)
+        return;
+    len = (size_t)tmp;
 
     if (pString->len + len + 1 >= pString->capacity) {
         pString->capacity = (pString->capacity + len + 1) << 1;
