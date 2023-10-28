@@ -87,7 +87,7 @@ DYNSTRDEF size_t getCapacity(const String* const pString);
 #define DYNS_FMT "%s"
 #define DYNS_ARG(str) (getStr(str))
 
-#ifdef DYN_STRING_IMPL
+#ifdef DYN_STRING_IMPLEMENTATION
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -484,6 +484,6 @@ size_t getCapacity(const struct String* const pString)
 	return pString->capacity;
 }
 
-#endif// DYN_STRING_IMPL
+#endif// DYN_STRING_IMPLEMENTATION
 
 #endif// DYN_STRING_H_
