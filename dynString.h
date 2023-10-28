@@ -77,8 +77,8 @@ DYNSTRDEF ssize_t dyns_find_char_nth(const DynString* pString, char chr, size_t 
 DYNSTRDEF ssize_t dyns_find_char_reverse(const DynString* pString, char chr);
 DYNSTRDEF ssize_t dyns_find_char_reverse_nth(const DynString* pString, char chr, size_t nth);
 
-DYNSTRDEF void dyns_clear_string_after_pos(DynString* pString, ssize_t pos);
-DYNSTRDEF void dyns_clear_string_before_pos(DynString* pString, ssize_t pos);
+DYNSTRDEF void dyns_clear_string_after_pos(DynString* pString, size_t pos);
+DYNSTRDEF void dyns_clear_string_before_pos(DynString* pString, size_t pos);
 DYNSTRDEF void dyns_erase(DynString* pString);
 
 DYNSTRDEF const char* dyns_get_cstr(const DynString* const pString);
@@ -394,23 +394,25 @@ ssize_t dyns_find_char_reverse_nth(const DynString* pString, char chr, size_t nt
     return ptr - pString->inner;
 }
 
-void dyns_clear_string_after_pos(DynString* pString, ssize_t pos) {
+void dyns_clear_string_after_pos(DynString* pString, size_t pos) {
     if (!pString)
         return;
 
-    size_t u_pos = pos < 0 ? pString->len + 1 + (size_t)pos : (size_t)pos;
-    memset(pString->inner + u_pos, 0, sizeof(char) * (pString->len - u_pos));
-    pString->len = u_pos;
+    pos = pos >= pString->len ? pString->len : pos;
+
+    memset(pString->inner + pos, 0, sizeof(char) * (pString->len - pos));
+    pString->len = pos;
 }
 
-void dyns_clear_string_before_pos(DynString* pString, ssize_t pos) {
+void dyns_clear_string_before_pos(DynString* pString, size_t pos) {
     if (!pString)
         return;
 
-    size_t u_pos = pos < 0 ? pString->len + 1 + (size_t)pos : (size_t)pos;
-    memmove(pString->inner, pString->inner + u_pos, sizeof(char) * (pString->len - u_pos));
-    memset(pString->inner + pString->len - u_pos, 0, sizeof(char) * u_pos);
-    pString->len -= u_pos;
+    pos = pos >= pString->len ? pString->len : pos;
+
+    memmove(pString->inner, pString->inner + pos, sizeof(char) * (pString->len - pos));
+    memset(pString->inner + pString->len - pos, 0, sizeof(char) * pos);
+    pString->len -= pos;
 }
 
 void dyns_erase(DynString* pString) {
