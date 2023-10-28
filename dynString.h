@@ -398,10 +398,13 @@ ssize_t dyns_find_char_reverse_nth(const DynString* pString, char chr, size_t nt
 }
 
 bool dyns_pop_char(DynString* pString, char* output) {
-    if (!output || pString->len == 0)
+    if (pString->len == 0)
         return false;
 
-    *output = pString->inner[--pString->len];
+    char tmp = pString->inner[--pString->len];
+    if (output) {
+        *output = tmp;
+    }
     return true;
 }
 
